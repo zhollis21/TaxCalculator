@@ -54,7 +54,7 @@ namespace TaxCalculator
             bool has401k = GetYesOrNoAnswer("Do you have a non-Roth 401k?");
             if (has401k)
             {
-                _taxExemptIncome = (GetNonNegativePercent("Enter the contribution percentage") / 100) * _grossIncome;
+                _taxExemptIncome += (GetNonNegativePercent("Enter the contribution percentage") / 100) * _grossIncome;
             }
 
             if (_isMarried)
@@ -62,7 +62,7 @@ namespace TaxCalculator
                 has401k = GetYesOrNoAnswer("Does your spouse have a non-Roth 401k?");
                 if (has401k)
                 {
-                    _taxExemptIncome = (GetNonNegativePercent("Enter the contribution percentage") / 100) * _spouseGrossIncome;
+                    _taxExemptIncome += (GetNonNegativePercent("Enter the contribution percentage") / 100) * _spouseGrossIncome;
                 }
             }
         }
@@ -98,7 +98,7 @@ namespace TaxCalculator
 
         private static double GetNonNegativePercent(string prompt)
         {
-            Console.Write($"\n{prompt}: ");
+            Console.Write($"\n{prompt} (0 - 100): ");
             var isValidDouble = double.TryParse(Console.ReadLine(), out double answer);
 
             while (!isValidDouble || answer < 0 || answer > 100)
@@ -113,6 +113,7 @@ namespace TaxCalculator
         private void GetMarriageInformation()
         {
             _isMarried = GetYesOrNoAnswer("Are you legally married?");
+            Console.WriteLine();
         }
 
         private void GetIncomeInformation()
