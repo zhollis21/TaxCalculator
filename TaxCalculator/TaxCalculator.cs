@@ -10,6 +10,7 @@ namespace TaxCalculator
         private static List<Bracket> _married2019TaxBrackets;
         private bool _isMarried;
         private long _grossIncome;
+        private double _taxExemptIncome;
 
         static TaxCalculator()
         {
@@ -41,51 +42,82 @@ namespace TaxCalculator
             GetMarriageInformation();
 
             GetIncomeInformation();
+
+            IdentifyExemptIncome();
+        }
+
+        private void IdentifyExemptIncome()
+        {
+            _taxExemptIncome = 0;
+
+            bool has401k = GetYesOrNoAnswer("Do you have a non-Roth 401k?");
+
+            if (has401k)
+            {
+                // TODO: Store couple income's seperately
+                _taxExemptIncome = GetNonNegativeDouble("Enter the contribution percentage");
+            }
+        }
+
+        private static bool GetYesOrNoAnswer(string prompt)
+        {
+            Console.Write($"\n{prompt} ('y' or 'n'): ");
+
+            char answer = Console.ReadLine().ToLower().FirstOrDefault();
+
+            while (answer != 'y' && answer != 'n')
+            {
+                Console.Write("Invalid Answer... Please respond with 'y' or 'n': ");
+                answer = Console.ReadLine().ToLower().FirstOrDefault();
+            }
+
+            return answer == 'y';
+        }
+
+        private static long GetNonNegativeLong(string prompt)
+        {
+            Console.Write($"\n{prompt}: ");
+            var isValidLong = long.TryParse(Console.ReadLine(), out long answer);
+
+            while (!isValidLong || answer < 0)
+            {
+                Console.Write("Invalid Answer... Please respond with a valid/non-negative number: ");
+                isValidLong = long.TryParse(Console.ReadLine(), out answer);
+            }
+
+            return answer;
+        }
+
+        private static double GetNonNegativeDouble(string prompt)
+        {
+            Console.Write($"\n{prompt}: ");
+            var isValidDouble = double.TryParse(Console.ReadLine(), out double answer);
+
+            while (!isValidDouble || answer < 0)
+            {
+                Console.Write("Invalid Answer... Please respond with a valid/non-negative number: ");
+                isValidDouble = double.TryParse(Console.ReadLine(), out answer);
+            }
+
+            return answer;
         }
 
         private void GetMarriageInformation()
         {
-            Console.Write("\nAre you legally married? ('y' or 'n'): ");
-            char marriedAnswer = Console.ReadLine().ToLower().FirstOrDefault();
-
-            while (marriedAnswer != 'y' && marriedAnswer != 'n')
-            {
-                Console.Write("Invalid Answer... Please respond with 'y' or 'n': ");
-                marriedAnswer = Console.ReadLine().ToLower().FirstOrDefault();
-            }
-
-            _isMarried = marriedAnswer == 'y';
+            _isMarried = GetYesOrNoAnswer("Are you legally married?");
         }
 
         private void GetIncomeInformation()
         {
             _grossIncome = 0;
 
-            Console.Write("\nEnter your yearly income: ");
-            var isValidLong = long.TryParse(Console.ReadLine(), out long userIncome);
-
-            while (!isValidLong || userIncome < 0)
-            {
-                Console.Write("Invalid Answer... Please respond with a valid/non-negative number: ");
-                isValidLong = long.TryParse(Console.ReadLine(), out userIncome);
-            }
-
-            _grossIncome += userIncome;
+            _grossIncome += GetNonNegativeLong("Enter your yearly income");
 
             if (_isMarried)
             {
-                Console.Write("\nEnter your spouse's yearly income: ");
-                isValidLong = long.TryParse(Console.ReadLine(), out long spouseIncome);
-
-                while (!isValidLong || spouseIncome < 0)
-                {
-                    Console.Write("Invalid Answer... Please respond with a valid/non-negative number: ");
-                    isValidLong = long.TryParse(Console.ReadLine(), out spouseIncome);
-                }
-
-                _grossIncome += spouseIncome;
-                Console.WriteLine();
+                _grossIncome += GetNonNegativeLong("Enter your spouse's yearly income");
             }
+            Console.WriteLine();
         }
 
         public void CalculateTaxEstimation()
