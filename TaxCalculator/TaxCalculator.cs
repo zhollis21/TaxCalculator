@@ -10,6 +10,7 @@ namespace TaxCalculator
         private static List<Bracket> _married2019TaxBrackets;
         private bool _isMarried;
         private long _grossIncome;
+        private long _spouseGrossIncome;
         private double _taxExemptIncome;
 
         static TaxCalculator()
@@ -51,11 +52,18 @@ namespace TaxCalculator
             _taxExemptIncome = 0;
 
             bool has401k = GetYesOrNoAnswer("Do you have a non-Roth 401k?");
-
             if (has401k)
             {
-                // TODO: Store couple income's seperately
-                _taxExemptIncome = GetNonNegativeDouble("Enter the contribution percentage");
+                _taxExemptIncome = (GetNonNegativePercent("Enter the contribution percentage") / 100) * _grossIncome;
+            }
+
+            if (_isMarried)
+            {
+                has401k = GetYesOrNoAnswer("Does your spouse have a non-Roth 401k?");
+                if (has401k)
+                {
+                    _taxExemptIncome = (GetNonNegativePercent("Enter the contribution percentage") / 100) * _spouseGrossIncome;
+                }
             }
         }
 
@@ -88,14 +96,14 @@ namespace TaxCalculator
             return answer;
         }
 
-        private static double GetNonNegativeDouble(string prompt)
+        private static double GetNonNegativePercent(string prompt)
         {
             Console.Write($"\n{prompt}: ");
             var isValidDouble = double.TryParse(Console.ReadLine(), out double answer);
 
-            while (!isValidDouble || answer < 0)
+            while (!isValidDouble || answer < 0 || answer > 100)
             {
-                Console.Write("Invalid Answer... Please respond with a valid/non-negative number: ");
+                Console.Write("Invalid Answer... Please respond with a valid/non-negative number between 0 and 100: ");
                 isValidDouble = double.TryParse(Console.ReadLine(), out answer);
             }
 
@@ -115,14 +123,15 @@ namespace TaxCalculator
 
             if (_isMarried)
             {
-                _grossIncome += GetNonNegativeLong("Enter your spouse's yearly income");
+                _spouseGrossIncome += GetNonNegativeLong("Enter your spouse's yearly income");
             }
             Console.WriteLine();
         }
 
         public void CalculateTaxEstimation()
         {
-            long untaxedIncome = _grossIncome;
+            double untaxedIncome = (_grossIncome + _spouseGrossIncome) - _taxExemptIncome;
+            long totalIncome = _grossIncome + _spouseGrossIncome;
             double taxEstimate = 0;
 
             // Select the correct tax bracket based on marriage status
@@ -133,7 +142,7 @@ namespace TaxCalculator
             {
                 long bracketRange = bracket.IncomeLimit - previousBracketIncomeLimit;
 
-                long applicableUntaxedIncome;
+                double applicableUntaxedIncome;
 
                 if (untaxedIncome > bracketRange)
                 {
@@ -160,10 +169,11 @@ namespace TaxCalculator
             }
 
             Console.WriteLine(
-                $"\nTotal Gross Income: ${_grossIncome}" +
-                $"\nTotal Net Income: ${_grossIncome - taxEstimate}" +
-                $"\nTotal Taxes: ${taxEstimate}" +
-                $"\nAverage Percent Taxed: {Math.Round((taxEstimate / _grossIncome) * 100)}%");
+                $"\nTotal Gross Income: ${totalIncome}" +
+                $"\nTotal Tax Exempt Income: ${Math.Round(_taxExemptIncome, 2)}" +
+                $"\nTotal Net Income: ${Math.Round(totalIncome - taxEstimate, 2)}" +
+                $"\nTotal Taxes: ${Math.Round(taxEstimate, 2)}" +
+                $"\nAverage Percent Taxed: {Math.Round((taxEstimate / (totalIncome - _taxExemptIncome) * 100), 2)}%");
         }
     }
 }
