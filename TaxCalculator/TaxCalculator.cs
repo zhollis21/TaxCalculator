@@ -6,33 +6,33 @@ namespace TaxCalculator
 {
     public class TaxCalculator
     {
-        private static Dictionary<long, double> _single2019TaxBrackets;
-        private static Dictionary<long, double> _married2019TaxBrackets;
+        private static List<Bracket> _single2019TaxBrackets;
+        private static List<Bracket> _married2019TaxBrackets;
         private bool _isMarried;
         private long _grossIncome;
 
         static TaxCalculator()
         {
-            _single2019TaxBrackets = new Dictionary<long, double>()
+            _single2019TaxBrackets = new List<Bracket>()
             {
-                { 9_700, 0.10 },
-                { 39_475, 0.12 },
-                { 84_200, 0.22 },
-                { 160_725, 0.24 },
-                { 204_100, 0.32 },
-                { 510_300, 0.35 },
-                { long.MaxValue, 0.37 }
+                new Bracket(9_700, 0.10),
+                new Bracket(39_475, 0.12),
+                new Bracket(84_200, 0.22),
+                new Bracket(160_725, 0.24),
+                new Bracket(204_100, 0.32),
+                new Bracket(510_300, 0.35),
+                new Bracket(long.MaxValue, 0.37)
             };
 
-            _married2019TaxBrackets = new Dictionary<long, double>()
+            _married2019TaxBrackets = new List<Bracket>()
             {
-                { 19_400, 0.10 },
-                { 78_950, 0.12 },
-                { 168_400, 0.22 },
-                { 321_450, 0.24 },
-                { 408_200, 0.32 },
-                { 612_350, 0.35 },
-                { long.MaxValue, 0.37 }
+                new Bracket(19_400, 0.10),
+                new Bracket(78_950, 0.12),
+                new Bracket(168_400, 0.22),
+                new Bracket(321_450, 0.24),
+                new Bracket(408_200, 0.32),
+                new Bracket(612_350, 0.35),
+                new Bracket(long.MaxValue, 0.37)
             };
         }
 
@@ -64,9 +64,9 @@ namespace TaxCalculator
             Console.Write("\nEnter your yearly income: ");
             var isValidLong = long.TryParse(Console.ReadLine(), out long userIncome);
 
-            while (!isValidLong || userIncome < 1)
+            while (!isValidLong || userIncome < 0)
             {
-                Console.Write("Invalid Answer... Please respond with a valid positive number: ");
+                Console.Write("Invalid Answer... Please respond with a valid/non-negative number: ");
                 isValidLong = long.TryParse(Console.ReadLine(), out userIncome);
             }
 
@@ -77,19 +77,61 @@ namespace TaxCalculator
                 Console.Write("\nEnter your spouse's yearly income: ");
                 isValidLong = long.TryParse(Console.ReadLine(), out long spouseIncome);
 
-                while (!isValidLong || spouseIncome < 1)
+                while (!isValidLong || spouseIncome < 0)
                 {
-                    Console.Write("Invalid Answer... Please respond with a valid positive number: ");
+                    Console.Write("Invalid Answer... Please respond with a valid/non-negative number: ");
                     isValidLong = long.TryParse(Console.ReadLine(), out spouseIncome);
                 }
 
                 _grossIncome += spouseIncome;
+                Console.WriteLine();
             }
         }
 
         public void CalculateTaxEstimation()
         {
-            
+            long untaxedIncome = _grossIncome;
+            double taxEstimate = 0;
+
+            // Select the correct tax bracket based on marriage status
+            var taxBrackets = _isMarried ? _married2019TaxBrackets : _single2019TaxBrackets;
+
+            long previousBracketIncomeLimit = 0;
+            foreach (var bracket in taxBrackets)
+            {
+                long bracketRange = bracket.IncomeLimit - previousBracketIncomeLimit;
+
+                long applicableUntaxedIncome;
+
+                if (untaxedIncome > bracketRange)
+                {
+                    applicableUntaxedIncome = bracketRange;
+                }
+                else
+                {
+                    applicableUntaxedIncome = untaxedIncome;
+                }
+
+                taxEstimate += applicableUntaxedIncome * bracket.TaxRate;
+                Console.WriteLine(
+                    $"{applicableUntaxedIncome} taxed at a rate of {Math.Round(bracket.TaxRate * 100)}% " +
+                    $"for a total of {applicableUntaxedIncome * bracket.TaxRate} in taxes.");
+
+                untaxedIncome -= bracketRange;
+
+                if (untaxedIncome <= 0)
+                {
+                    break;
+                }
+
+                previousBracketIncomeLimit = bracket.IncomeLimit;
+            }
+
+            Console.WriteLine(
+                $"\nTotal Gross Income: ${_grossIncome}" +
+                $"\nTotal Net Income: ${_grossIncome - taxEstimate}" +
+                $"\nTotal Taxes: ${taxEstimate}" +
+                $"\nAverage Percent Taxed: {Math.Round((taxEstimate / _grossIncome) * 100)}%");
         }
     }
 }
