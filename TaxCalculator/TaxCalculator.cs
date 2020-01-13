@@ -171,7 +171,7 @@ namespace TaxCalculator
             Console.WriteLine(
                 $"\nTotal Gross Income: ${totalIncome}" +
                 $"\nTotal Tax Exempt Income: ${Math.Round(_taxExemptIncome, 2)}" +
-                $"\nTotal Net Income: ${Math.Round(totalIncome - taxEstimate, 2)}" +
+                $"\nTotal Net Income: ${Math.Round((totalIncome - taxEstimate) - _taxExemptIncome, 2)}" +
                 $"\nTotal Taxes: ${Math.Round(taxEstimate, 2)}" +
                 $"\nAverage Percent Taxed: {Math.Round((taxEstimate / (totalIncome - _taxExemptIncome) * 100), 2)}%");
         }
