@@ -65,6 +65,8 @@ namespace TaxCalculator
                     _taxExemptIncome += (GetNonNegativePercent("Enter the contribution percentage") / 100) * _spouseGrossIncome;
                 }
             }
+
+            Console.WriteLine();
         }
 
         private static bool GetYesOrNoAnswer(string prompt)
@@ -145,21 +147,18 @@ namespace TaxCalculator
 
                 double applicableUntaxedIncome;
 
-                if (untaxedIncome > bracketRange)
-                {
-                    applicableUntaxedIncome = bracketRange;
-                }
-                else
-                {
-                    applicableUntaxedIncome = untaxedIncome;
-                }
+                // How much income are we taxing in this bracket?
+                // If we have more untaxedIncome than the bracketRange, we just tax the bracket range
+                // If we have less untaxedIncome than the bracketRange, we only tax the remaining untaxedIncome
+                applicableUntaxedIncome = Math.Min(untaxedIncome, bracketRange);
 
-                taxEstimate += applicableUntaxedIncome * bracket.TaxRate;
+                var taxForThisBracket = applicableUntaxedIncome * bracket.TaxRate;
                 Console.WriteLine(
-                    $"{applicableUntaxedIncome} taxed at a rate of {Math.Round(bracket.TaxRate * 100)}% " +
-                    $"for a total of {applicableUntaxedIncome * bracket.TaxRate} in taxes.");
+                    $"{applicableUntaxedIncome} taxed at a rate of {Math.Round(bracket.TaxRate * 100, 2)}% " +
+                    $"for a total of {taxForThisBracket} in taxes.");
 
-                untaxedIncome -= bracketRange;
+                taxEstimate += taxForThisBracket;
+                untaxedIncome -= applicableUntaxedIncome;
 
                 if (untaxedIncome <= 0)
                 {
