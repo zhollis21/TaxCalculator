@@ -6,8 +6,8 @@ namespace TaxCalculator
 {
     public class TaxCalculator
     {
-        private static List<Bracket> _single2019TaxBrackets;
-        private static List<Bracket> _married2019TaxBrackets;
+        private static readonly List<Bracket> _single2019TaxBrackets;
+        private static readonly List<Bracket> _married2019TaxBrackets;
         private bool _isMarried;
         private long _grossIncome;
         private long _spouseGrossIncome;
@@ -54,7 +54,14 @@ namespace TaxCalculator
             bool has401k = GetYesOrNoAnswer("Do you have a non-Roth 401k?");
             if (has401k)
             {
-                _taxExemptIncome += (GetNonNegativePercent("Enter the contribution percentage") / 100) * _grossIncome;
+                var percentContribution = GetNonNegativePercent("Enter the contribution percentage");
+                var nontaxable401kIncome = percentContribution * _grossIncome;
+
+                Console.WriteLine(
+                    $"{percentContribution.ToString("P")} of {_grossIncome.ToString("C")} contributed, " +
+                    $"for a total of {nontaxable401kIncome.ToString("C")} to your 401k.");
+
+                _taxExemptIncome += nontaxable401kIncome;
             }
 
             if (_isMarried)
@@ -62,7 +69,14 @@ namespace TaxCalculator
                 has401k = GetYesOrNoAnswer("Does your spouse have a non-Roth 401k?");
                 if (has401k)
                 {
-                    _taxExemptIncome += (GetNonNegativePercent("Enter the contribution percentage") / 100) * _spouseGrossIncome;
+                    var spousePercentContribution = GetNonNegativePercent("Enter the contribution percentage");
+                    var spouseNontaxable401kIncome = spousePercentContribution * _spouseGrossIncome;
+
+                    Console.WriteLine(
+                        $"{spousePercentContribution.ToString("P")} of {_grossIncome.ToString("C")} contributed, " +
+                        $"for a total of {spouseNontaxable401kIncome.ToString("C")} to your spouse's 401k.");
+
+                    _taxExemptIncome += spouseNontaxable401kIncome;
                 }
             }
 
@@ -109,7 +123,7 @@ namespace TaxCalculator
                 isValidDouble = double.TryParse(Console.ReadLine(), out answer);
             }
 
-            return answer;
+            return answer / 100;
         }
 
         private void GetMarriageInformation()
@@ -128,6 +142,7 @@ namespace TaxCalculator
             {
                 _spouseGrossIncome += GetNonNegativeLong("Enter your spouse's yearly income");
             }
+
             Console.WriteLine();
         }
 
@@ -154,8 +169,8 @@ namespace TaxCalculator
 
                 var taxForThisBracket = applicableUntaxedIncome * bracket.TaxRate;
                 Console.WriteLine(
-                    $"{applicableUntaxedIncome} taxed at a rate of {Math.Round(bracket.TaxRate * 100, 2)}% " +
-                    $"for a total of {taxForThisBracket} in taxes.");
+                    $"{applicableUntaxedIncome.ToString("C")} taxed at a rate of {bracket.TaxRate.ToString("P0")} " +
+                    $"for a total of {taxForThisBracket.ToString("C")} in taxes.");
 
                 taxEstimate += taxForThisBracket;
                 untaxedIncome -= applicableUntaxedIncome;
@@ -169,11 +184,11 @@ namespace TaxCalculator
             }
 
             Console.WriteLine(
-                $"\nTotal Gross Income: ${totalIncome}" +
-                $"\nTotal Tax Exempt Income: ${Math.Round(_taxExemptIncome, 2)}" +
-                $"\nTotal Net Income: ${Math.Round((totalIncome - taxEstimate) - _taxExemptIncome, 2)}" +
-                $"\nTotal Taxes: ${Math.Round(taxEstimate, 2)}" +
-                $"\nAverage Percent Taxed: {Math.Round((taxEstimate / (totalIncome - _taxExemptIncome) * 100), 2)}%");
+                $"\nTotal Gross Income: {totalIncome.ToString("C")}" +
+                $"\nTotal Tax Exempt Income: {_taxExemptIncome.ToString("C")}" +
+                $"\nTotal Net Income: {((totalIncome - taxEstimate) - _taxExemptIncome).ToString("C")}" +
+                $"\nTotal Taxes: {taxEstimate.ToString("C")}" +
+                $"\nAverage Percent Taxed: {(taxEstimate / (totalIncome - _taxExemptIncome)).ToString("P")}");
         }
     }
 }
