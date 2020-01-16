@@ -118,7 +118,7 @@ namespace TaxCalculator
                     var spouseNontaxable401kIncome = spousePercentContribution * _spouseGrossIncome;
 
                     Console.WriteLine(
-                        $"{spousePercentContribution.ToString("P")} of {_grossIncome.ToString("C")} contributed, " +
+                        $"{spousePercentContribution.ToString("P")} of {_spouseGrossIncome.ToString("C")} contributed, " +
                         $"for a total of {spouseNontaxable401kIncome.ToString("C")} to your spouse's 401k.");
 
                     _taxExemptIncome += spouseNontaxable401kIncome;
@@ -136,9 +136,7 @@ namespace TaxCalculator
 
         private void GetIncomeInformation()
         {
-            _grossIncome = 0;
-
-            _grossIncome += GetNonNegativeLong("Enter your yearly income");
+            _grossIncome = GetNonNegativeLong("Enter your yearly income");
 
             if (_isMarried)
             {
