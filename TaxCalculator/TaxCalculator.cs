@@ -56,22 +56,23 @@ namespace TaxCalculator
             // Select the correct tax bracket based on marriage status
             var taxBrackets = _isMarried ? _married2019TaxBrackets : _single2019TaxBrackets;
 
+            // Used to determine the range of a tax bracket by subracting 
+            // the current income limit from the previous income limit.
             long previousBracketIncomeLimit = 0;
+
             foreach (var bracket in taxBrackets)
             {
+                // Calculate the range of income that can be taxed under this bracket
                 long bracketRange = bracket.IncomeLimit - previousBracketIncomeLimit;
-
-                double applicableUntaxedIncome;
-
-                // How much income are we taxing in this bracket?
-                // If we have more untaxedIncome than the bracketRange, we just tax the bracket range
-                // If we have less untaxedIncome than the bracketRange, we only tax the remaining untaxedIncome
-                applicableUntaxedIncome = Math.Min(untaxedIncome, bracketRange);
+                
+                // If the user has less untaxed income than the bracket range, 
+                // then we can only tax how much untaxed income they have left
+                double applicableUntaxedIncome = Math.Min(untaxedIncome, bracketRange);
 
                 var taxForThisBracket = applicableUntaxedIncome * bracket.TaxRate;
                 Console.WriteLine(
-                    $"{applicableUntaxedIncome.ToString("C")} taxed at a rate of {bracket.TaxRate.ToString("P0")} " +
-                    $"for a total of {taxForThisBracket.ToString("C")} in taxes.");
+                    $"{applicableUntaxedIncome:C} taxed at a rate of {bracket.TaxRate:P0} " +
+                    $"for a total of {taxForThisBracket:C} in taxes.");
 
                 taxEstimate += taxForThisBracket;
                 untaxedIncome -= applicableUntaxedIncome;
@@ -85,11 +86,11 @@ namespace TaxCalculator
             }
 
             Console.WriteLine(
-                $"\nTotal Gross Income: {totalIncome.ToString("C")}" +
-                $"\nTotal Tax Exempt Income: {_taxExemptIncome.ToString("C")}" +
-                $"\nTotal Net Income: {((totalIncome - taxEstimate) - _taxExemptIncome).ToString("C")}" +
-                $"\nTotal Taxes: {taxEstimate.ToString("C")}" +
-                $"\nAverage Percent Taxed: {(taxEstimate / (totalIncome - _taxExemptIncome)).ToString("P")}");
+                $"\nTotal Gross Income: {totalIncome:C}" +
+                $"\nTotal Tax Exempt Income: {_taxExemptIncome:C}" +
+                $"\nTotal Net Income: {((totalIncome - taxEstimate) - _taxExemptIncome):C}" +
+                $"\nTotal Taxes: {taxEstimate:C}" +
+                $"\nAverage Percent Taxed: {(taxEstimate / (totalIncome - _taxExemptIncome)):P}");
         }
 
         private void IdentifyExemptIncome()
@@ -103,8 +104,8 @@ namespace TaxCalculator
                 var nontaxable401kIncome = percentContribution * _grossIncome;
 
                 Console.WriteLine(
-                    $"{percentContribution.ToString("P")} of {_grossIncome.ToString("C")} contributed, " +
-                    $"for a total of {nontaxable401kIncome.ToString("C")} to your 401k.");
+                    $"{percentContribution:P} of {_grossIncome:C} contributed, " +
+                    $"for a total of {nontaxable401kIncome:C} to your 401k.");
 
                 _taxExemptIncome += nontaxable401kIncome;
             }
@@ -118,8 +119,8 @@ namespace TaxCalculator
                     var spouseNontaxable401kIncome = spousePercentContribution * _spouseGrossIncome;
 
                     Console.WriteLine(
-                        $"{spousePercentContribution.ToString("P")} of {_spouseGrossIncome.ToString("C")} contributed, " +
-                        $"for a total of {spouseNontaxable401kIncome.ToString("C")} to your spouse's 401k.");
+                        $"{spousePercentContribution:P} of {_spouseGrossIncome:C} contributed, " +
+                        $"for a total of {spouseNontaxable401kIncome:C} to your spouse's 401k.");
 
                     _taxExemptIncome += spouseNontaxable401kIncome;
                 }
