@@ -56,7 +56,8 @@ namespace TaxCalculator
             // Select the correct tax bracket based on marriage status
             var taxBrackets = _isMarried ? _married2019TaxBrackets : _single2019TaxBrackets;
 
-            // Used to determine the range of a tax bracket by subracting 
+            // Used to determine the range of a tax bracket by subtracting 
+
             // the current income limit from the previous income limit.
             long previousBracketIncomeLimit = 0;
 
@@ -66,7 +67,8 @@ namespace TaxCalculator
                 long bracketRange = bracket.IncomeLimit - previousBracketIncomeLimit;
                 
                 // If the user has less untaxed income than the bracket range, 
-                // then we can only tax how much untaxed income they have left
+                // then we can only tax however much untaxed income they have left
+
                 double applicableUntaxedIncome = Math.Min(untaxedIncome, bracketRange);
 
                 var taxForThisBracket = applicableUntaxedIncome * bracket.TaxRate;
